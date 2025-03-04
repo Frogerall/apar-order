@@ -242,3 +242,7 @@ window.printOrders = function() {
 
 // Fetch people on page load
 fetchPeople();
+if (window.matchMedia("(display-mode: standalone)").matches) {
+    console.log("Running as an installed app!");
+}
+

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Management</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h2>📦 Order Management</h2>
+
+        <!-- Add Person -->
+        <div class="input-group">
+            <input type="text" id="personInput" placeholder="Enter person's name">
+            <button onclick="addPerson()">Add Person</button>
+        </div>
+
+        <!-- Select Person -->
+        <h3>Select Person</h3>
+        <select id="personSelect" onchange="fetchOrders()">
+            <option value="">Select a person</option>
+        </select>
+
+        <!-- Select Date -->
+        <h3>Select Date</h3>
+        <input type="date" id="dateSelect" onchange="fetchOrders()">
+
+        <!-- Add Order -->
+        <h3>Add Order</h3>
+        <div class="input-group">
+            <input type="text" id="orderInput" placeholder="Enter order">
+            <button onclick="addOrder()">Add Order</button>
+        </div>
+
+        <!-- Order List -->
+        <h3>Orders</h3>
+        <ul id="orderList"></ul>
+    </div>
+
+    <script type="module" src="script.js"></script>
+</body>
+</html>

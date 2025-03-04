@@ -4,49 +4,47 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Order Management</title>
-    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <link rel="manifest" href="/manifest.json">
-
 </head>
-<body>
-    <div class="container">
-        <h2>📦 Order Management</h2>
+<body class="bg-gray-100 flex justify-center items-center min-h-screen">
+    <div class="bg-white shadow-lg rounded-lg p-6 w-full max-w-md">
+        <h2 class="text-2xl font-semibold text-center mb-4">📦 Order Management</h2>
 
         <!-- Add Person -->
-        <div class="input-group">
-            <input type="text" id="personInput" placeholder="Enter person's name">
-            <button onclick="addPerson()">Add Person</button>
+        <div class="flex gap-2 mb-4">
+            <input type="text" id="personInput" class="w-full p-2 border rounded" placeholder="Enter person's name">
+            <button onclick="addPerson()" class="bg-blue-500 text-white px-4 py-2 rounded">Add</button>
         </div>
 
         <!-- Select Person -->
-        <h3>Select Person</h3>
-        <select id="personSelect" onchange="fetchOrders()">
-            <option value="">Select a person</option>
-        </select>
-        
-        <button onclick="editPerson()">✏️</button>
-        <button onclick="deletePerson()">❌</button>
-
-
+        <h3 class="text-lg font-medium">Select Person</h3>
+        <div class="flex gap-2 mb-4">
+            <select id="personSelect" class="w-full p-2 border rounded" onchange="fetchOrders()">
+                <option value="">Select a person</option>
+            </select>
+            <button onclick="editPerson()" class="bg-yellow-500 text-white px-3 py-2 rounded">✏️</button>
+            <button onclick="deletePerson()" class="bg-red-500 text-white px-3 py-2 rounded">❌</button>
+        </div>
 
         <!-- Select Date -->
-        <h3>Select Date</h3>
-        <input type="date" id="dateSelect" onchange="fetchOrders()">
+        <h3 class="text-lg font-medium">Select Date</h3>
+        <input type="date" id="dateSelect" class="w-full p-2 border rounded mb-4" onchange="fetchOrders()">
 
         <!-- Add Order -->
-        <h3>Add Order</h3>
-        <div class="input-group">
-            <input type="text" id="orderInput" placeholder="Enter order">
-            <button onclick="addOrder()">Add Order</button>
+        <h3 class="text-lg font-medium">Add Order</h3>
+        <div class="flex gap-2 mb-4">
+            <input type="text" id="orderInput" class="w-full p-2 border rounded" placeholder="Enter order">
+            <button onclick="addOrder()" class="bg-green-500 text-white px-4 py-2 rounded">Add</button>
         </div>
 
         <!-- Order List -->
-        <h3>Orders</h3>
-        <ul id="orderList"></ul>
+        <h3 class="text-lg font-medium">Orders</h3>
+        <ul id="orderList" class="list-none space-y-2 mb-4"></ul>
 
         <!-- Print Orders Button -->
-        <button onclick="printOrders()" class="print-btn">🖨️ Print Orders</button>
+        <button onclick="printOrders()" class="bg-gray-700 text-white w-full py-2 rounded">🖨️ Print Orders</button>
     </div>
 
     <script type="module" src="script.js"></script>

@@ -21,6 +21,11 @@
         <select id="personSelect" onchange="fetchOrders()">
             <option value="">Select a person</option>
         </select>
+        
+        <button onclick="editPerson()">✏️</button>
+        <button onclick="deletePerson()">❌</button>
+
+
 
         <!-- Select Date -->
         <h3>Select Date</h3>
@@ -36,6 +41,9 @@
         <!-- Order List -->
         <h3>Orders</h3>
         <ul id="orderList"></ul>
+
+        <!-- Print Orders Button -->
+        <button onclick="printOrders()" class="print-btn">🖨️ Print Orders</button>
     </div>
 
     <script type="module" src="script.js"></script>

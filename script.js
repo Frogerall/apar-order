@@ -1,6 +1,6 @@
 // Import Firebase modules
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, where } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
 
 // Firebase Configuration
 const firebaseConfig = {
@@ -45,15 +45,97 @@ window.fetchPeople = async function() {
         personSelect.appendChild(option);
     });
 };
+// Function to Delete a Person and Their Orders
+window.deletePerson = async function() {
+    const personSelect = document.getElementById("personSelect").value;
+
+    if (!personSelect) {
+        alert("Please select a person to delete.");
+        return;
+    }
+
+    if (!confirm(`Are you sure you want to delete ${personSelect} and all their orders?`)) return;
+
+    try {
+        // Query for the person's document
+        const peopleCollection = collection(db, "people");
+        const personQuery = query(peopleCollection, where("name", "==", personSelect));
+        const personSnapshot = await getDocs(personQuery);
+
+        if (!personSnapshot.empty) {
+            const personDoc = personSnapshot.docs[0]; // Assuming names are unique
+            await deleteDoc(doc(db, "people", personDoc.id)); // Delete person document
+
+            // Query and delete all associated orders
+            const ordersCollection = collection(db, "orders");
+            const ordersQuery = query(ordersCollection, where("person", "==", personSelect));
+            const ordersSnapshot = await getDocs(ordersQuery);
+
+            const deletePromises = ordersSnapshot.docs.map(orderDoc => deleteDoc(doc(db, "orders", orderDoc.id)));
+            await Promise.all(deletePromises); // Delete all orders
+
+            alert(`${personSelect} and their orders have been deleted.`);
+            fetchPeople(); // Refresh dropdown
+            fetchOrders(); // Refresh order list
+        } else {
+            alert("Person not found.");
+        }
+    } catch (error) {
+        console.error("Error deleting person and orders: ", error);
+    }
+};
+// Function to Edit a Person's Name
+window.editPerson = async function() {
+    const oldName = document.getElementById("personSelect").value;
+    if (!oldName) {
+        alert("Please select a person to edit.");
+        return;
+    }
+
+    const newName = prompt("Enter new name:", oldName);
+    if (!newName || newName.trim() === "") return;
+
+    try {
+        const db = getFirestore();
+
+        // Query for the person's document
+        const personQuery = query(collection(db, "people"), where("name", "==", oldName));
+        const personSnapshot = await getDocs(personQuery);
+
+        if (!personSnapshot.empty) {
+            const personDoc = personSnapshot.docs[0]; // Assuming names are unique
+            await updateDoc(doc(db, "people", personDoc.id), { name: newName }); // Update person's name
+
+            // Query and update all related orders
+            const ordersQuery = query(collection(db, "orders"), where("person", "==", oldName));
+            const ordersSnapshot = await getDocs(ordersQuery);
+
+            const updatePromises = ordersSnapshot.docs.map(orderDoc =>
+                updateDoc(doc(db, "orders", orderDoc.id), { person: newName })
+            );
+            await Promise.all(updatePromises); // Update all orders in parallel
+
+            alert(`Updated ${oldName} to ${newName}`);
+            fetchPeople(); // Refresh dropdown
+            fetchOrders(); // Refresh order list
+        } else {
+            alert("Person not found.");
+        }
+    } catch (error) {
+        console.error("Error updating person and orders: ", error);
+        alert("Failed to update person. Check console for details.");
+    }
+};
 
 // Function to Add an Order
 window.addOrder = async function() {
     const orderInput = document.getElementById("orderInput").value;
     const personSelect = document.getElementById("personSelect").value;
-    const date = new Date().toISOString().split("T")[0]; // Get today's date
+    const date = document.getElementById("dateSelect").value;
 
     if (!personSelect) return alert("Please select a person");
     if (!orderInput) return alert("Please enter an order");
+    if (!date) return alert("Please select a date");
 
     try {
         await addDoc(collection(db, "orders"), {
@@ -74,23 +156,88 @@ window.fetchOrders = async function() {
     const personSelect = document.getElementById("personSelect").value;
     const selectedDate = document.getElementById("dateSelect").value;
     const orderList = document.getElementById("orderList");
-    
     orderList.innerHTML = ""; // Clear previous orders
 
-    if (!personSelect) return;
+    if (!personSelect || !selectedDate) return;
 
-    let q = query(collection(db, "orders"), where("person", "==", personSelect));
-    if (selectedDate) {
-        q = query(collection(db, "orders"), where("person", "==", personSelect), where("date", "==", selectedDate));
-    }
-
+    const q = query(collection(db, "orders"), where("person", "==", personSelect), where("date", "==", selectedDate));
     const querySnapshot = await getDocs(q);
 
-    querySnapshot.forEach((doc) => {
+    querySnapshot.forEach((docSnapshot) => {
+        const orderData = docSnapshot.data();
+        const orderId = docSnapshot.id;
+
         const li = document.createElement("li");
-        li.textContent = `${doc.data().text} `;
+        li.innerHTML = `
+            ${orderData.text} 
+            <button onclick="editOrder('${orderId}', '${orderData.text}')">✏️</button>
+            <button onclick="deleteOrder('${orderId}')">❌</button>
+        `;
         orderList.appendChild(li);
     });
+};
+
+
+// Function to Delete an Order
+window.deleteOrder = async function(orderId) {
+    if (confirm("Are you sure you want to delete this order?")) {
+        try {
+            await deleteDoc(doc(db, "orders", orderId));
+            alert("Order deleted!");
+            fetchOrders(); // Refresh the list
+        } catch (error) {
+            console.error("Error deleting order: ", error);
+        }
+    }
+};
+
+// Function to Edit an Order
+window.editOrder = async function(orderId, oldText) {
+    const newText = prompt("Edit order:", oldText);
+    if (newText === null || newText.trim() === "") return;
+
+    try {
+        await updateDoc(doc(db, "orders", orderId), { text: newText });
+        alert("Order updated!");
+        fetchOrders(); // Refresh the list
+    } catch (error) {
+        console.error("Error updating order: ", error);
+    }
+};
+
+// Function to Print Orders
+window.printOrders = function() {
+    const personSelect = document.getElementById("personSelect").value;
+    const selectedDate = document.getElementById("dateSelect").value;
+    const orderList = document.getElementById("orderList").innerHTML;
+
+    if (!personSelect || !selectedDate) {
+        alert("Please select a person and date before printing.");
+        return;
+    }
+
+    const printWindow = window.open("", "_blank");
+    printWindow.document.write(`
+        <html>
+        <head>
+            <title>Order List</title>
+            <style>
+                body { font-family: Arial, sans-serif; padding: 20px; }
+                h2 { text-align: center; }
+                ul { list-style-type: none; padding: 0; }
+                ul li { padding: 5px; border-bottom: 1px solid #ddd; }
+                .date { font-style: italic; }
+            </style>
+        </head>
+        <body>
+            <h2>Orders for ${personSelect}</h2>
+            <p class="date">Date: ${selectedDate}</p>
+            <ul>${orderList}</ul>
+            <script>window.print();</script>
+        </body>
+        </html>
+    `);
+    printWindow.document.close();
 };
 
 // Fetch people on page load
